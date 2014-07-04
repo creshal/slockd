@@ -222,6 +222,8 @@ lockscreen(Display *dpy, int screen) {
 	invisible = XCreatePixmapCursor(dpy, lock->pmap, lock->pmap, &color, &color, 0, 0);
 	XDefineCursor(dpy, lock->win, invisible);
 	XMapRaised(dpy, lock->win);
+	XSetWindowBackground(dpy, lock->win, lock->colors[0]);
+	XClearWindow(dpy, lock->win);
 	for(len = 1000; len; len--) {
 		if(XGrabPointer(dpy, lock->root, False, ButtonPressMask | ButtonReleaseMask | PointerMotionMask,
 			GrabModeAsync, GrabModeAsync, None, invisible, CurrentTime) == GrabSuccess)

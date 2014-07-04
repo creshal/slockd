@@ -238,7 +238,7 @@ lockscreen(Display *dpy, int screen) {
 		unlockscreen(dpy, lock);
 		lock = NULL;
 	}
-	else 
+	else
 		XSelectInput(dpy, lock->root, SubstructureNotifyMask);
 
 	return lock;
@@ -248,6 +248,27 @@ static void
 usage(void) {
 	fprintf(stderr, "usage: slock [-v]\n");
 	exit(EXIT_FAILURE);
+}
+
+static void
+daemonise () {
+	pid_t pid;
+
+	if (getppid() == 1)
+		return;
+
+	pid = fork();
+	if (pid<0)
+		die ("Failed to fork.");
+	if (pid>0)
+		exit (0);
+
+	if (setsid()<0 || chdir("/") <0)
+		die ("Failed to create new session.");
+
+	freopen( "/dev/null", "r", stdin);
+	freopen( "/dev/null", "w", stdout);
+	freopen( "/dev/null", "w", stderr);
 }
 
 int
@@ -295,7 +316,12 @@ main(int argc, char **argv) {
 		return 1;
 	}
 
-	/* Everything is now blank. Now wait for the correct password. */
+	/* Everything is now blank. Now daemonise and wait for the correct
+	   password. Daemonisation allows e.g. suspend handlers to postpone
+	   sleep until after the screen is blanked out. */
+
+	daemonise ();
+
 #ifdef HAVE_BSD_AUTH
 	readpw(dpy);
 #else

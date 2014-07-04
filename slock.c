@@ -270,9 +270,10 @@ daemonise () {
 	if (setsid()<0 || chdir("/") <0)
 		die ("Failed to create new session.");
 
-	freopen( "/dev/null", "r", stdin);
-	freopen( "/dev/null", "w", stdout);
-	freopen( "/dev/null", "w", stderr);
+	if (freopen( "/dev/null", "r", stdin)  == NULL
+	 || freopen( "/dev/null", "w", stdout) == NULL
+	 || freopen( "/dev/null", "w", stderr) == NULL)
+		die ("Failed to close fds.");
 }
 
 int

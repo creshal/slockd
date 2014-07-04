@@ -27,12 +27,13 @@ typedef struct {
 	int screen;
 	Window root, win;
 	Pixmap pmap;
-	unsigned long colors[2];
+	unsigned long colors[3];
 } Lock;
 
 static Lock **locks;
 static int nscreens;
 static Bool running = True;
+static Bool tried = False;
 
 static void
 die(const char *errstr, ...) {
@@ -133,6 +134,7 @@ readpw(Display *dpy, const char *pws)
 #ifdef HAVE_BSD_AUTH
 				running = !auth_userokay(getlogin(), NULL, "auth-xlock", passwd);
 #else
+				tried=True;
 				running = !!strcmp(crypt(passwd, pws), pws);
 #endif
 				if(running)
@@ -160,7 +162,7 @@ readpw(Display *dpy, const char *pws)
 				}
 			} else if(llen != 0 && len == 0) {
 				for(screen = 0; screen < nscreens; screen++) {
-					XSetWindowBackground(dpy, locks[screen]->win, locks[screen]->colors[0]);
+					XSetWindowBackground(dpy, locks[screen]->win, locks[screen]->colors[tried ? 2 : 0]);
 					XClearWindow(dpy, locks[screen]->win);
 				}
 			}
@@ -177,7 +179,7 @@ unlockscreen(Display *dpy, Lock *lock) {
 		return;
 
 	XUngrabPointer(dpy, CurrentTime);
-	XFreeColors(dpy, DefaultColormap(dpy, lock->screen), lock->colors, 2, 0);
+	XFreeColors(dpy, DefaultColormap(dpy, lock->screen), lock->colors, 3, 0);
 	XFreePixmap(dpy, lock->pmap);
 	XDestroyWindow(dpy, lock->win);
 
@@ -210,6 +212,8 @@ lockscreen(Display *dpy, int screen) {
 	lock->win = XCreateWindow(dpy, lock->root, 0, 0, DisplayWidth(dpy, lock->screen), DisplayHeight(dpy, lock->screen),
 			0, DefaultDepth(dpy, lock->screen), CopyFromParent,
 			DefaultVisual(dpy, lock->screen), CWOverrideRedirect | CWBackPixel, &wa);
+	XAllocNamedColor(dpy, DefaultColormap(dpy, lock->screen), COLOR3, &color, &dummy);
+	lock->colors[2] = color.pixel;
 	XAllocNamedColor(dpy, DefaultColormap(dpy, lock->screen), COLOR2, &color, &dummy);
 	lock->colors[1] = color.pixel;
 	XAllocNamedColor(dpy, DefaultColormap(dpy, lock->screen), COLOR1, &color, &dummy);

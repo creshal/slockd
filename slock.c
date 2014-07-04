@@ -252,7 +252,9 @@ lockscreen(Display *dpy, int screen) {
 
 static void
 usage(void) {
-	fprintf(stderr, "usage: slock [-v]\n");
+	fprintf(stderr, "usage: slock [-v|-d]\n");
+	fprintf(stderr, "-v:\tPrint version and exit.\n");
+	fprintf(stderr, "-d:\tDaemonize after locking screen.\n");
 	exit(EXIT_FAILURE);
 }
 
@@ -285,9 +287,12 @@ main(int argc, char **argv) {
 #endif
 	Display *dpy;
 	int screen;
+	Bool daemon = False;
 
 	if((argc == 2) && !strcmp("-v", argv[1]))
 		die("slock-%s, © 2006-2012 Anselm R Garbe\n", VERSION);
+	else if ((argc == 2) && (!strcmp ("-d", argv[1])))
+		daemon = True;
 	else if(argc != 1)
 		usage();
 
@@ -326,8 +331,8 @@ main(int argc, char **argv) {
 	/* Everything is now blank. Now daemonise and wait for the correct
 	   password. Daemonisation allows e.g. suspend handlers to postpone
 	   sleep until after the screen is blanked out. */
-
-	daemonise ();
+	if (daemon)
+		daemonise ();
 
 #ifdef HAVE_BSD_AUTH
 	readpw(dpy);

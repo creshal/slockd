@@ -1,6 +1,6 @@
 slock - simple screen locker
 ============================
-simple screen locker utility for X. 
+simple screen locker utility for X.
 
 
 Requirements
@@ -22,3 +22,7 @@ Afterwards enter the following command to build and install slock
 Running slock
 -------------
 Simply invoke the 'slock' command. To get out of it, enter your password.
+
+-d daemonises slock *after* the screen has been locked, so you can safely
+call it via e.g. a systemd-sleep hook without having the screen briefly
+unlocked during resume.
